@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Room Management</title>
+    <link rel="stylesheet" href="/files/css/styles.css" />
+  </head>
+  <body>
+    <div id="app-shell">
+      <section id="dashboard-view" class="view active">
+        <header class="topbar">
+          <div>
+            <h2>Room Management</h2>
+          </div>
+          <div class="topbar-actions">
+            <a href="/electricity" class="secondary-btn" style="text-decoration:none; display:inline-block; text-align:center;">Go to Electricity</a>
+            <a href="/" class="secondary-btn" style="text-decoration:none; display:inline-block; text-align:center;">Home</a>
+          </div>
+        </header>
+
+        <nav id="main-toolbar" class="toolbar" aria-label="Main menu">
+          <button class="nav-btn active" data-view="room-form-view">Add/Edit Room</button>
+          <button class="nav-btn" data-view="room-details-view">Room details</button>
+          <button class="nav-btn" data-view="data-view">Data</button>
+        </nav>
+
+        <main id="tools-main">
+          <section id="room-form-view" class="section-view active">
+            <div class="card">
+              <h3>Add / Edit Room</h3>
+              <form id="room-form">
+                <div class="field-row">
+                  <label>
+                    <span>Current room name</span>
+                    <input id="room-original-name" type="text" placeholder="Select existing room to rename" />
+                  </label>
+                  <label>
+                    <span>Room name</span>
+                    <input id="room-name" type="text" placeholder="Room 1" required />
+                  </label>
+                </div>
+
+                <div class="field-row">
+                  <label>
+                    <span>Join date</span>
+                    <input id="join-date" type="text" inputmode="numeric" placeholder="DD/MM/YYYY (BS)" />
+                  </label>
+                  <label>
+                    <span>Leave date</span>
+                    <input id="leave-date" type="text" inputmode="numeric" placeholder="DD/MM/YYYY (BS)" />
+                  </label>
+                </div>
+
+                <div class="action-row">
+                  <button type="submit" class="primary-btn">Save room</button>
+                  <button type="button" id="clear-room-form" class="secondary-btn">Clear</button>
+                </div>
+              </form>
+            </div>
+
+            <div class="card">
+              <h3>Room list</h3>
+              <div id="room-list" class="list-box"></div>
+            </div>
+          </section>
+
+          <section id="room-details-view" class="section-view hidden">
+            <div class="card">
+              <h3>Room details</h3>
+              <div class="room-select-wrap">
+                <label>
+                  <span>Select room</span>
+                  <select id="room-details-select"></select>
+                </label>
+              </div>
+              <div id="room-details-content" class="detail-box"></div>
+            </div>
+          </section>
+
+          <section id="data-view" class="section-view hidden">
+            <div class="card">
+              <h3>Data</h3>
+              <div class="room-select-wrap">
+                <label>
+                  <span>Select room</span>
+                  <select id="data-room-select"></select>
+                </label>
+              </div>
+              <div id="data-room-content" class="detail-box"></div>
+            </div>
+          </section>
+        </main>
+      </section>
+    </div>
+
+    <script>
+      window.__APP_PAGE__ = 'room';
+    </script>
+    <script src="/files/js/app.js"></script>
+  </body>
+</html>

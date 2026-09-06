@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home &amp; Electricity Bills</title>
+    <style>
+      :root {
+        --bg: #0f172a;
+        --panel: #111827;
+        --panel-2: #1f2937;
+        --primary: #22c55e;
+        --primary-dark: #16a34a;
+        --accent: #38bdf8;
+        --text: #e5e7eb;
+        --muted: #9ca3af;
+        --danger: #ef4444;
+        --warning: #fbbf24;
+        --border: rgba(148, 163, 184, 0.2);
+        --shadow: 0 12px 32px rgba(15, 23, 42, 0.35);
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: Arial, Helvetica, sans-serif;
+        background: linear-gradient(135deg, #020817, var(--bg));
+        color: var(--text);
+      }
+
+      button, input, select { font: inherit; }
+      .hidden { display: none !important; }
+
+      #app-shell {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+
+      .view { width: 100%; }
+      .card {
+        background: rgba(17, 24, 39, 0.96);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        box-shadow: var(--shadow);
+        padding: 24px;
+      }
+
+      .login-card { max-width: 480px; margin: 0 auto; }
+      .login-card h1, .card h3, .topbar h2 { margin-top: 0; }
+      .subtitle { color: var(--muted); margin-bottom: 22px; }
+
+      #login-form, #room-form, #bill-form, #calculator-form {
+        display: flex; flex-direction: column; gap: 16px;
+      }
+
+      label {
+        display: flex; flex-direction: column; gap: 8px; color: var(--text);
+      }
+      label span { font-weight: 600; }
+
+      input, select {
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: #0b1220;
+        color: var(--text);
+        padding: 12px 14px;
+      }
+
+      input:focus, select:focus {
+        outline: 2px solid rgba(56, 189, 248, 0.4);
+        border-color: var(--accent);
+      }
+
+      .primary-btn, .secondary-btn, .nav-btn {
+        border: none;
+        border-radius: 10px;
+        padding: 12px 16px;
+        cursor: pointer;
+        transition: 0.2s ease;
+      }
+
+      .primary-btn {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: #04130b;
+        font-weight: 700;
+      }
+
+      .secondary-btn {
+        background: #1e293b;
+        color: var(--text);
+        border: 1px solid var(--border);
+      }
+
+      .nav-btn {
+        background: #162132;
+        color: var(--text);
+        border: 1px solid var(--border);
+        flex: 1;
+      }
+
+      .nav-btn.active {
+        background: linear-gradient(135deg, var(--accent), #2563eb);
+        color: #03111d;
+        font-weight: 700;
+      }
+
+      #dashboard-view {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .toolbar {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+      }
+
+      .section-view { display: grid; gap: 20px; }
+      .field-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+      .field-row.single { grid-template-columns: 1fr; }
+      .action-row { display: flex; gap: 12px; align-items: center; }
+
+      .list-box, .detail-box {
+        display: flex; flex-direction: column; gap: 12px; margin-top: 16px;
+      }
+
+      .room-item, .bill-entry {
+        background: rgba(15, 23, 42, 0.9);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px 16px;
+      }
+
+      .room-item {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .room-item button, .bill-entry button {
+        background: #142033;
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 8px 10px;
+        cursor: pointer;
+      }
+
+      .error-text { color: #fca5a5; min-height: 20px; margin: 0; }
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 12px;
+      }
+
+      .summary-card {
+        background: #0b1220;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px;
+      }
+
+      .summary-card strong {
+        display: block;
+        font-size: 0.8rem;
+        color: var(--muted);
+        margin-bottom: 4px;
+      }
+
+      .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 16px;
+      }
+
+      .data-table th, .data-table td {
+        border: 1px solid var(--border);
+        padding: 10px 8px;
+        text-align: left;
+        font-size: 0.92rem;
+      }
+
+      .data-table th { background: rgba(30, 41, 59, 0.9); }
+      .status-paid { color: #86efac; }
+      .status-unpaid { color: #fca5a5; }
+      .status-empty { color: #fbbf24; }
+
+      .home-view { max-width: 720px; margin: 48px auto 0; }
+      .home-card { text-align: center; }
+      .home-card h3 { font-size: 1.8rem; }
+      .home-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 28px; }
+      .mode-btn { min-height: 76px; font-size: 1.1rem; }
+
+      @media (max-width: 700px) {
+        .field-row { grid-template-columns: 1fr; }
+        .toolbar { flex-direction: column; }
+        .home-actions { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app-shell">
+      <section id="login-view" class="view active">
+        <div class="card login-card">
+          <h1>Home &amp; Electricity Bills</h1>
+          <p class="subtitle">Secure login</p>
+
+          <form id="login-form">
+            <label>
+              <span>Username</span>
+              <input id="username" type="text" placeholder="Enter username" required />
+            </label>
+
+            <label>
+              <span>Password</span>
+              <input id="password" type="password" placeholder="Enter password" required />
+            </label>
+
+            <button type="submit" class="primary-btn">Login</button>
+            <p id="login-error" class="error-text" aria-live="polite"></p>
+          </form>
+        </div>
+      </section>
+
+      <section id="dashboard-view" class="view hidden">
+        <header class="topbar">
+          <div><h2>Home &amp; Electricity Bills</h2></div>
+          <button id="logout-btn" class="secondary-btn">Logout</button>
+        </header>
+
+        <nav id="main-toolbar" class="toolbar" aria-label="Main menu">
+          <button class="nav-btn active" data-view="room-form-view">Add/Edit Room</button>
+          <button class="nav-btn" data-view="room-details-view">Room details</button>
+          <button class="nav-btn" data-view="bill-form-view">Add bill</button>
+          <button class="nav-btn" data-view="calculator-view">Calculator</button>
+          <button class="nav-btn" data-view="data-view">Data</button>
+        </nav>
+
+        <main id="tools-main">
+          <section id="room-form-view" class="section-view active">
+            <div class="card">
+              <h3>Add / Edit Room</h3>
+              <form id="room-form">
+                <div class="field-row">
+                  <label>
+                    <span>Current room name</span>
+                    <input id="room-original-name" type="text" placeholder="Select existing room to rename" />
+                  </label>
+                  <label>
+                    <span>Room name</span>
+                    <input id="room-name" type="text" placeholder="Room 1" required />
+                  </label>
+                </div>
+
+                <div class="field-row">
+                  <label>
+                    <span>Join date</span>
+                    <input id="join-date" type="text" placeholder="Day Month Year (BS)" />
+                  </label>
+                  <label>
+                    <span>Leave date</span>
+                    <input id="leave-date" type="text" placeholder="Day Month Year (BS)" />
+                  </label>
+                </div>
+
+                <div class="action-row">
+                  <button type="submit" class="primary-btn">Save room</button>
+                  <button type="button" id="clear-room-form" class="secondary-btn">Clear</button>
+                </div>
+              </form>
+            </div>
+
+            <div class="card">
+              <h3>Room list</h3>
+              <div id="room-list" class="list-box"></div>
+            </div>
+          </section>
+
+          <section id="room-details-view" class="section-view hidden">
+            <div class="card">
+              <h3>Room details</h3>
+              <div class="room-select-wrap">
+                <label>
+                  <span>Select room</span>
+                  <select id="room-details-select"></select>
+                </label>
+              </div>
+              <div id="room-details-content" class="detail-box"></div>
+            </div>
+          </section>
+
+          <section id="bill-form-view" class="section-view hidden">
+            <div class="card">
+              <h3>Add bill</h3>
+              <form id="bill-form">
+                <div class="field-row">
+                  <label>
+                    <span>Room</span>
+                    <select id="bill-room" required></select>
+                  </label>
+                  <label>
+                    <span>Bill date</span>
+                    <input id="bill-date" type="text" placeholder="Day Month Year (BS)" required />
+                  </label>
+                </div>
+
+                <div class="field-row">
+                  <label>
+                    <span>Previous unit</span>
+                    <input id="previous-unit" type="number" min="0" step="1" />
+                  </label>
+                  <label>
+                    <span>Current unit</span>
+                    <input id="current-unit" type="number" min="0" step="1" required />
+                  </label>
+                </div>
+
+                <div class="field-row">
+                  <label>
+                    <span>Consumed unit</span>
+                    <input id="consumed-unit" type="number" min="0" step="1" readonly />
+                  </label>
+                  <label>
+                    <span>Rate</span>
+                    <input id="rate" type="number" min="0" step="1" />
+                  </label>
+                </div>
+
+                <div class="field-row">
+                  <label>
+                    <span>Machine</span>
+                    <input id="machine" type="number" min="0" step="1" />
+                  </label>
+                  <label>
+                    <span>Total</span>
+                    <input id="total" type="number" min="0" step="1" readonly />
+                  </label>
+                </div>
+
+                <div class="field-row">
+                  <label>
+                    <span>Status</span>
+                    <select id="bill-status">
+                      <option value="Paid">Paid</option>
+                      <option value="Unpaid">Unpaid</option>
+                      <option value="Empty">Empty</option>
+                    </select>
+                  </label>
+                  <label>
+                    <span>Paid date</span>
+                    <input id="paid-date" type="text" placeholder="Day Month Year (BS)" />
+                  </label>
+                </div>
+
+                <div class="field-row single">
+                  <label>
+                    <span>Payment method</span>
+                    <select id="payment-method">
+                      <option value="Cash">Cash</option>
+                      <option value="Online">Online</option>
+                      <option value="Unpaid">Unpaid</option>
+                      <option value="Empty">Empty</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div class="action-row">
+                  <button type="submit" class="primary-btn">Save bill</button>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <section id="calculator-view" class="section-view hidden">
+            <div class="card">
+              <h3>Bill calculator</h3>
+              <form id="calculator-form">
+                <div class="field-row">
+                  <label>
+                    <span>Previous unit</span>
+                    <input id="calc-previous-unit" type="number" min="0" step="1" required />
+                  </label>
+                  <label>
+                    <span>Current unit</span>
+                    <input id="calc-current-unit" type="number" min="0" step="1" required />
+                  </label>
+                </div>
+
+                <div class="field-row">
+                  <label>
+                    <span>Consumed unit</span>
+                    <input id="calc-consumed-unit" type="number" min="0" step="1" readonly />
+                  </label>
+                  <label>
+                    <span>Rate</span>
+                    <input id="calc-rate" type="number" min="0" step="1" required />
+                  </label>
+                </div>
+
+                <div class="field-row">
+                  <label>
+                    <span>Machine</span>
+                    <input id="calc-machine" type="number" min="0" step="1" required />
+                  </label>
+                  <label>
+                    <span>Total</span>
+                    <input id="calc-total" type="number" min="0" step="1" readonly />
+                  </label>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <section id="data-view" class="section-view hidden">
+            <div class="card">
+              <h3>Data</h3>
+              <div class="room-select-wrap">
+                <label>
+                  <span>Select room</span>
+                  <select id="data-room-select"></select>
+                </label>
+              </div>
+              <div id="data-room-content" class="detail-box"></div>
+            </div>
+          </section>
+        </main>
+      </section>
+    </div>
+
+    <script>
+      const state = { authenticated: false, rooms: [], activeSection: 'room-form-view' };
+      const currency = (value) => `Rs. ${Number(value || 0).toLocaleString('en-US')}`;
+      const toInteger = (value) => Number.isFinite(Number(value)) ? Math.floor(Number(value)) : 0;
+
+      function showSection(sectionId) {
+        state.activeSection = sectionId;
+        document.querySelectorAll('.section-view').forEach((section) => {
+          section.classList.toggle('active', section.id === sectionId);
+          section.classList.toggle('hidden', section.id !== sectionId);
+        });
+
+        document.querySelectorAll('.nav-btn').forEach((button) => {
+          button.classList.toggle('active', button.dataset.view === sectionId);
+        });
+      }
+
+      function showView(viewId) {
+        const loginView = document.getElementById('login-view');
+        const dashboardView = document.getElementById('dashboard-view');
+        loginView.classList.toggle('hidden', viewId !== 'login');
+        dashboardView.classList.toggle('hidden', viewId !== 'dashboard');
+      }
+
+      function setLoginError(message) {
+        const errorNode = document.getElementById('login-error');
+        errorNode.textContent = message || '';
+      }
+
+      async function fetchJson(url, options = {}) {
+        const response = await fetch(url, {
+          headers: { 'Content-Type': 'application/json' },
+          ...options
+        });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Request failed');
+        return data;
+      }
+
+      function calculateBill(previousUnit, currentUnit, rate, machine) {
+        const prev = toInteger(previousUnit);
+        const current = toInteger(currentUnit);
+        const consume = Math.max(current - prev, 0);
+        const rateValue = toInteger(rate);
+        const machineValue = toInteger(machine);
+        const total = consume * rateValue + machineValue;
+        return { consumedUnit: consume, total };
+      }
+
+      function updateBillFormPreview() {
+        const prev = document.getElementById('previous-unit').value;
+        const current = document.getElementById('current-unit').value;
+        const rate = document.getElementById('rate').value;
+        const machine = document.getElementById('machine').value;
+        const { consumedUnit, total } = calculateBill(prev, current, rate, machine);
+        document.getElementById('consumed-unit').value = consumedUnit;
+        document.getElementById('total').value = total;
+      }
+
+      function updateCalculatorPreview() {
+        const prev = document.getElementById('calc-previous-unit').value;
+        const current = document.getElementById('calc-current-unit').value;
+        const rate = document.getElementById('calc-rate').value;
+        const machine = document.getElementById('calc-machine').value;
+        const { consumedUnit, total } = calculateBill(prev, current, rate, machine);
+        document.getElementById('calc-consumed-unit').value = consumedUnit;
+        document.getElementById('calc-total').value = total;
+      }
+
+      function loadRoomOptions() {
+        const roomSelects = [
+          document.getElementById('bill-room'),
+          document.getElementById('room-details-select'),
+          document.getElementById('data-room-select')
+        ];
+
+        roomSelects.forEach((select) => {
+          if (!select) return;
+          const currentValue = select.value;
+          select.innerHTML = '<option value="">Select room</option>' + state.rooms
+            .map((room) => `<option value="${room.roomName}">${room.roomName}</option>`)
+            .join('');
+          if (currentValue && state.rooms.some((room) => room.roomName === currentValue)) {
+            select.value = currentValue;
+          }
+        });
+      }
+
+      function renderRoomList() {
+        const roomListNode = document.getElementById('room-list');
+        if (!state.rooms.length) {
+          roomListNode.innerHTML = '<div class="room-item"><span>No rooms yet. Add one to begin.</span></div>';
+          return;
+        }
+
+        roomListNode.innerHTML = state.rooms
+          .map((room) => `
+            <div class="room-item">
+              <div>
+                <strong>${room.roomName}</strong>
+                <div>Join: ${room.joinDate || 'N/A'} | Leave: ${room.leaveDate || 'N/A'}</div>
+              </div>
+              <div>
+                <button type="button" data-room-name="${room.roomName}" class="edit-room-btn">Edit</button>
+                <button type="button" data-room-name="${room.roomName}" class="delete-room-btn danger-btn">Delete</button>
+              </div>
+            </div>
+          `).join('');
+
+        document.querySelectorAll('.edit-room-btn').forEach((button) => {
+          button.addEventListener('click', async () => {
+            const roomName = button.dataset.roomName;
+            try {
+              const result = await fetchJson(`/api/rooms/${encodeURIComponent(roomName)}`);
+              const room = result.room || {};
+              document.getElementById('room-original-name').value = room.roomName || roomName;
+              document.getElementById('room-name').value = room.roomName || roomName;
+              document.getElementById('join-date').value = room.joinDate || '';
+              document.getElementById('leave-date').value = room.leaveDate || '';
+            } catch (error) {
+              console.error(error);
+            }
+          });
+        });
+
+        document.querySelectorAll('.delete-room-btn').forEach((button) => {
+          button.addEventListener('click', async () => {
+            const roomName = button.dataset.roomName;
+            if (!window.confirm(`Delete room "${roomName}" and all its bills?`)) return;
+
+            try {
+              await fetchJson(`/api/rooms/${encodeURIComponent(roomName)}`, { method: 'DELETE' });
+              document.getElementById('room-form').reset();
+              document.getElementById('room-original-name').value = '';
+              await loadRooms();
+            } catch (error) {
+              alert(error.message);
+            }
+          });
+        });
+      }
+
+      function renderRoomDetails(roomName) {
+        const detailsNode = document.getElementById('room-details-content');
+        if (!roomName) {
+          detailsNode.innerHTML = '<div class="room-item"><span>Select a room to view details.</span></div>';
+          return;
+        }
+
+        const room = state.rooms.find((item) => item.roomName === roomName) || { roomName, billCount: 0 };
+        const roomData = room.data || { bills: [] };
+        const bills = roomData.bills || [];
+        const paidCount = bills.filter((bill) => bill.status === 'Paid').length;
+        const unpaidCount = bills.filter((bill) => bill.status === 'Unpaid').length;
+        const emptyCount = bills.filter((bill) => bill.status === 'Empty').length;
+
+        detailsNode.innerHTML = `
+          <div class="summary-grid">
+            <div class="summary-card"><strong>Room</strong><span>${room.roomName}</span></div>
+            <div class="summary-card"><strong>Paid</strong><span>${paidCount}</span></div>
+            <div class="summary-card"><strong>Unpaid</strong><span>${unpaidCount}</span></div>
+            <div class="summary-card"><strong>Empty</strong><span>${emptyCount}</span></div>
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Date</th><th>Previous</th><th>Current</th><th>Consumed</th><th>Rate</th><th>Machine</th><th>Total</th><th>Status</th><th>Paid date</th><th>Payment</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${bills.length ? bills.map((bill) => `
+                <tr>
+                  <td>${bill.billDate || 'N/A'}</td>
+                  <td>${bill.previousUnit}</td>
+                  <td>${bill.currentUnit}</td>
+                  <td>${bill.consumedUnit}</td>
+                  <td>${currency(bill.rate)}</td>
+                  <td>${currency(bill.machine)}</td>
+                  <td>${currency(bill.total)}</td>
+                  <td class="status-${String(bill.status || 'Unpaid').toLowerCase()}">${bill.status}</td>
+                  <td>${bill.paidDate || 'N/A'}</td>
+                  <td>${bill.paymentMethod || 'Cash'}</td>
+                </tr>
+              `).join('') : '<tr><td colspan="10">No billing records yet.</td></tr>'}
+            </tbody>
+          </table>
+        `;
+      }
+
+      function renderDataContent(roomName) {
+        const contentNode = document.getElementById('data-room-content');
+        if (!roomName) {
+          contentNode.innerHTML = '<div class="room-item"><span>Select a room to edit or save data.</span></div>';
+          return;
+        }
+
+        const room = state.rooms.find((item) => item.roomName === roomName) || { roomName, billCount: 0 };
+        const roomData = room.data || { bills: [] };
+        const bills = roomData.bills || [];
+
+        contentNode.innerHTML = `
+          <div class="summary-grid">
+            <div class="summary-card"><strong>Room</strong><span>${roomName}</span></div>
+            <div class="summary-card"><strong>Join date</strong><span>${roomData.joinDate || 'N/A'}</span></div>
+            <div class="summary-card"><strong>Leave date</strong><span>${roomData.leaveDate || 'N/A'}</span></div>
+          </div>
+
+          <button id="save-room-data" class="primary-btn" type="button">Save room data</button>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Bill date</th><th>Previous unit</th><th>Current unit</th><th>Consumed unit</th><th>Rate</th><th>Machine</th><th>Total</th><th>Status</th><th>Paid date</th><th>Payment method</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${bills.length ? bills.map((bill) => `
+                <tr>
+                  <td>${bill.billDate || 'N/A'}</td>
+                  <td>${bill.previousUnit}</td>
+                  <td>${bill.currentUnit}</td>
+                  <td>${bill.consumedUnit}</td>
+                  <td>${currency(bill.rate)}</td>
+                  <td>${currency(bill.machine)}</td>
+                  <td>${currency(bill.total)}</td>
+                  <td class="status-${String(bill.status || 'Unpaid').toLowerCase()}">${bill.status}</td>
+                  <td>${bill.paidDate || 'N/A'}</td>
+                  <td>${bill.paymentMethod || 'Cash'}</td>
+                </tr>
+              `).join('') : '<tr><td colspan="10">No records for this room.</td></tr>'}
+            </tbody>
+          </table>
+        `;
+
+        document.getElementById('save-room-data').addEventListener('click', async () => {
+          const roomPayload = roomData;
+          try {
+            await fetchJson(`/api/rooms/${encodeURIComponent(roomName)}`, {
+              method: 'POST',
+              body: JSON.stringify(roomPayload)
+            });
+            alert(`Data for ${roomName} saved successfully.`);
+          } catch (error) {
+            alert(error.message);
+          }
+        });
+      }
+
+      async function loadRooms() {
+        try {
+          const result = await fetchJson('/api/rooms');
+          state.rooms = result.rooms || [];
+
+          for (const room of state.rooms) {
+            const roomData = await fetchJson(`/api/rooms/${encodeURIComponent(room.roomName)}`);
+            room.data = roomData.room || { roomName: room.roomName, bills: [] };
+          }
+
+          renderRoomList();
+          loadRoomOptions();
+
+          const selectedRoom = document.getElementById('room-details-select').value || (state.rooms[0] ? state.rooms[0].roomName : '');
+          document.getElementById('room-details-select').value = selectedRoom;
+          renderRoomDetails(selectedRoom);
+
+          const dataRoom = document.getElementById('data-room-select').value || (state.rooms[0] ? state.rooms[0].roomName : '');
+          document.getElementById('data-room-select').value = dataRoom;
+          renderDataContent(dataRoom);
+
+          populateBillRoomSelect();
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      function populateBillRoomSelect() {
+        const select = document.getElementById('bill-room');
+        if (!select) return;
+        select.innerHTML = '<option value="">Select room</option>' + state.rooms
+          .map((room) => `<option value="${room.roomName}">${room.roomName}</option>`)
+          .join('');
+      }
+
+      async function handleLogin(event) {
+        event.preventDefault();
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
+
+        try {
+          await fetchJson('/api/login', {
+            method: 'POST',
+            body: JSON.stringify({ username, password })
+          });
+
+          state.authenticated = true;
+          localStorage.setItem('electricity-auth', 'true');
+          showView('dashboard');
+          setLoginError('');
+          await loadRooms();
+        } catch (error) {
+          setLoginError(error.message);
+        }
+      }
+
+      function handleLogout() {
+        state.authenticated = false;
+        localStorage.removeItem('electricity-auth');
+        showView('login');
+        document.getElementById('login-form').reset();
+        document.getElementById('username').value = 'Phurpa_XD_14';
+        document.getElementById('password').value = '@P1h2U3r4P5a614Gg';
+      }
+
+      async function handleRoomSave(event) {
+        event.preventDefault();
+        const originalName = document.getElementById('room-original-name').value.trim();
+        const roomName = document.getElementById('room-name').value.trim();
+        const joinDate = document.getElementById('join-date').value;
+        const leaveDate = document.getElementById('leave-date').value;
+
+        if (!roomName) {
+          alert('Please enter a room name.');
+          return;
+        }
+
+        try {
+          const result = await fetchJson('/api/rooms', {
+            method: 'POST',
+            body: JSON.stringify({ originalName, roomName, joinDate, leaveDate })
+          });
+
+          const roomResult = result.room;
+          const roomRoomName = roomResult.roomName;
+          document.getElementById('room-original-name').value = roomRoomName;
+          document.getElementById('room-name').value = roomRoomName;
+          showSection('room-form-view');
+          await loadRooms();
+          document.getElementById('bill-room').value = roomRoomName;
+          document.getElementById('room-details-select').value = roomRoomName;
+          document.getElementById('data-room-select').value = roomRoomName;
+          renderRoomDetails(roomRoomName);
+          renderDataContent(roomRoomName);
+        } catch (error) {
+          alert(error.message);
+        }
+      }
+
+      async function handleBillSave(event) {
+        event.preventDefault();
+        const roomName = document.getElementById('bill-room').value;
+        const billDate = document.getElementById('bill-date').value;
+        const previousUnit = document.getElementById('previous-unit').value;
+        const currentUnit = document.getElementById('current-unit').value;
+        const rate = document.getElementById('rate').value;
+        const machine = document.getElementById('machine').value;
+        const status = document.getElementById('bill-status').value;
+        const paidDate = document.getElementById('paid-date').value;
+        const paymentMethod = document.getElementById('payment-method').value;
+        const { consumedUnit, total } = calculateBill(previousUnit, currentUnit, rate, machine);
+
+        if (!roomName) {
+          alert('Please select a room.');
+          return;
+        }
+
+        try {
+          await fetchJson(`/api/rooms/${encodeURIComponent(roomName)}/bills`, {
+            method: 'POST',
+            body: JSON.stringify({
+              billDate,
+              previousUnit: toInteger(previousUnit),
+              currentUnit: toInteger(currentUnit),
+              consumedUnit,
+              rate: toInteger(rate),
+              machine: toInteger(machine),
+              total,
+              status,
+              paidDate,
+              paymentMethod
+            })
+          });
+
+          alert('Bill saved successfully.');
+          document.getElementById('bill-form').reset();
+          await loadRooms();
+          showSection('bill-form-view');
+        } catch (error) {
+          alert(error.message);
+        }
+      }
+
+      function setupEvents() {
+        document.getElementById('login-form').addEventListener('submit', handleLogin);
+        document.getElementById('logout-btn').addEventListener('click', handleLogout);
+        document.getElementById('room-form').addEventListener('submit', handleRoomSave);
+        document.getElementById('clear-room-form').addEventListener('click', () => {
+          document.getElementById('room-form').reset();
+          document.getElementById('room-original-name').value = '';
+        });
+        document.getElementById('bill-form').addEventListener('submit', handleBillSave);
+
+        document.getElementById('previous-unit').addEventListener('input', updateBillFormPreview);
+        document.getElementById('current-unit').addEventListener('input', updateBillFormPreview);
+        document.getElementById('rate').addEventListener('input', updateBillFormPreview);
+        document.getElementById('machine').addEventListener('input', updateBillFormPreview);
+
+        document.getElementById('calc-previous-unit').addEventListener('input', updateCalculatorPreview);
+        document.getElementById('calc-current-unit').addEventListener('input', updateCalculatorPreview);
+        document.getElementById('calc-rate').addEventListener('input', updateCalculatorPreview);
+        document.getElementById('calc-machine').addEventListener('input', updateCalculatorPreview);
+
+        document.querySelectorAll('.nav-btn').forEach((button) => {
+          button.addEventListener('click', () => showSection(button.dataset.view));
+        });
+
+        document.getElementById('room-details-select').addEventListener('change', (event) => {
+          renderRoomDetails(event.target.value);
+        });
+
+        document.getElementById('data-room-select').addEventListener('change', (event) => {
+          renderDataContent(event.target.value);
+        });
+      }
+
+      function initializeApp() {
+        const savedAuth = localStorage.getItem('electricity-auth');
+        if (savedAuth === 'true') {
+          state.authenticated = true;
+          showView('dashboard');
+          loadRooms();
+        } else {
+          showView('login');
+        }
+
+        showSection('room-form-view');
+        setupEvents();
+      }
+
+      window.addEventListener('DOMContentLoaded', initializeApp);
+    </script>
+  </body>
+</html>

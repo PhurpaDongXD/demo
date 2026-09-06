@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home &amp; Electricity Bills</title>
+    <link rel="stylesheet" href="/files/css/styles.css" />
+  </head>
+  <body>
+    <div id="app-shell">
+      <section id="login-view" class="view active">
+        <div class="card login-card">
+          <h1>Home &amp; Electricity Bills</h1>
+          <p class="subtitle">Secure login</p>
+
+          <form id="login-form" autocomplete="off">
+            <label>
+              <span>Username</span>
+              <input id="username" type="text" placeholder="Enter username" autocomplete="off" autocapitalize="off" spellcheck="false" required />
+            </label>
+
+            <label>
+              <span>Password</span>
+              <input id="password" type="password" placeholder="Enter password" autocomplete="new-password" autocapitalize="off" spellcheck="false" required />
+            </label>
+
+            <button type="submit" class="primary-btn">Login</button>
+            <p id="login-error" class="error-text" aria-live="polite"></p>
+          </form>
+        </div>
+      </section>
+
+      <section id="dashboard-view" class="view hidden">
+        <header class="topbar">
+          <div>
+            <h2>Home &amp; Electricity Bills</h2>
+          </div>
+          <div class="topbar-actions">
+            <button id="mode-switch-btn" type="button" class="secondary-btn hidden">Switch to Electricity</button>
+            <button id="logout-btn" class="secondary-btn">Logout</button>
+          </div>
+        </header>
+
+        <section id="home-view" class="home-view">
+          <div class="card home-card">
+            <h3>Home &amp; Electricity Bills</h3>
+            <p class="subtitle">Choose what you want to manage</p>
+            <div class="home-actions">
+              <button id="electricity-btn" type="button" class="primary-btn mode-btn">Electricity</button>
+              <button id="home-btn" type="button" class="secondary-btn mode-btn">Home</button>
+            </div>
+          </div>
+        </section>
+
+        <nav id="main-toolbar" class="toolbar hidden" aria-label="Main menu">
+          <button class="nav-btn active" data-view="room-form-view">Add/Edit Room</button>
+          <button class="nav-btn" data-view="room-details-view">Room details</button>
+          <button class="nav-btn" data-view="bill-form-view">Add bill</button>
+          <button class="nav-btn" data-view="calculator-view">Calculator</button>
+          <button class="nav-btn" data-view="data-view">Data</button>
+        </nav>
+
+        <main id="tools-main" class="hidden">
+          <section id="room-form-view" class="section-view active">
+            <div class="card">
+              <h3>Add / Edit Room</h3>
+              <form id="room-form">
+                <div class="field-row">
+                  <label>
+                    <span>Current room name</span>
+                    <input id="room-original-name" type="text" placeholder="Select existing room to rename" />
+                  </label>
+                  <label>
+                    <span>Room name</span>
+                    <input id="room-name" type="text" placeholder="Room 1" required />
+                  </label>
+                </div>
+
+                <div class="field-row">
+                  <label>
+                    <span>Join date</span>
+                    <input id="join-date" type="text" inputmode="numeric" placeholder="DD/MM/YYYY (BS)" />
+                  </label>
+                  <label>
+                    <span>Leave date</span>
+                    <input id="leave-date" type="text" inputmode="numeric" placeholder="DD/MM/YYYY (BS)" />
+                  </label>
+                </div>
+
+                <div class="action-row">
+                  <button type="submit" class="primary-btn">Save room</button>
+                  <button type="button" id="clear-room-form" class="secondary-btn">Clear</button>
+                </div>
+              </form>
+            </div>
+
+            <div class="card">
+              <h3>Room list</h3>
+              <div id="room-list" class="list-box"></div>
+            </div>
+          </section>
+
+          <section id="room-details-view" class="section-view hidden">
+            <div class="card">
+              <h3>Room details</h3>
+              <div class="room-select-wrap">
+                <label>
+                  <span>Select room</span>
+                  <select id="room-details-select"></select>
+                </label>
+              </div>
+              <div id="room-details-content" class="detail-box"></div>
+            </div>
+          </section>
+
+          <section id="bill-form-view" class="section-view hidden">
+            <div class="card">
+              <h3>Add bill</h3>
+              <form id="bill-form">
+                <div class="field-row">
+                  <label>
+                    <span>Room</span>
+                    <select id="bill-room" required></select>
+                    <small class="field-help">Rooms with a leave date stay available so you can save final readings and bills.</small>
+                  </label>
+                  <label>
+                    <span>Bill date</span>
+                    <input id="bill-date" type="text" inputmode="numeric" placeholder="DD/MM/YYYY (BS)" required />
+                  </label>
+                </div>
+
+                <div id="bill-electricity-fields">
+                  <div class="field-row">
+                    <label>
+                      <span>Previous unit</span>
+                      <input id="previous-unit" type="number" min="0" step="1" />
+                    </label>
+                    <label>
+                      <span>Current unit</span>
+                      <input id="current-unit" type="number" min="0" step="1" required />
+                    </label>
+                  </div>
+
+                  <div class="field-row">
+                    <label>
+                      <span>Consumed unit</span>
+                      <input id="consumed-unit" type="number" min="0" step="1" readonly />
+                    </label>
+                    <label>
+                      <span>Rate</span>
+                      <input id="rate" type="number" min="0" step="1" />
+                    </label>
+                  </div>
+
+                  <div class="field-row">
+                    <label>
+                      <span>Machine</span>
+                      <input id="machine" type="number" min="0" step="1" />
+                    </label>
+                    <label>
+                      <span>Total</span>
+                      <input id="total" type="number" min="0" step="1" readonly />
+                    </label>
+                  </div>
+                </div>
+
+                <div id="bill-home-fields" class="hidden">
+                  <div class="field-row">
+                    <label>
+                      <span>House bill amount</span>
+                      <input id="home-bill-amount" type="number" min="0" step="1" placeholder="Enter amount" />
+                    </label>
+                    <label>
+                      <span>Category</span>
+                      <select id="home-bill-category">
+                        <option value="Rent">Rent</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </label>
+                  </div>
+
+                  <div id="home-bill-note-wrap" class="field-row single hidden">
+                    <label>
+                      <span>Details / note</span>
+                      <input id="home-bill-note" type="text" placeholder="Explain the other bill here" />
+                    </label>
+                  </div>
+                </div>
+
+                <div class="field-row">
+                  <label>
+                    <span>Status</span>
+                    <select id="bill-status">
+                      <option value="Paid">Paid</option>
+                      <option value="Unpaid">Unpaid</option>
+                      <option value="Empty">Empty</option>
+                    </select>
+                  </label>
+                  <label>
+                    <span>Paid date</span>
+                    <input id="paid-date" type="text" inputmode="numeric" placeholder="DD/MM/YYYY (BS)" />
+                  </label>
+                </div>
+
+                <div class="field-row single">
+                  <label>
+                    <span>Payment method</span>
+                    <select id="payment-method">
+                      <option value="Cash">Cash</option>
+                      <option value="Online">Online</option>
+                      <option value="Unpaid">Unpaid</option>
+                      <option value="Empty">Empty</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div class="action-row">
+                  <button type="submit" class="primary-btn">Save bill</button>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <section id="calculator-view" class="section-view hidden">
+            <div class="card">
+              <h3>Bill calculator</h3>
+              <form id="calculator-form">
+                <div class="field-row">
+                  <label>
+                    <span>Previous unit</span>
+                    <input id="calc-previous-unit" type="number" min="0" step="1" required />
+                  </label>
+                  <label>
+                    <span>Current unit</span>
+                    <input id="calc-current-unit" type="number" min="0" step="1" required />
+                  </label>
+                </div>
+
+                <div class="field-row">
+                  <label>
+                    <span>Consumed unit</span>
+                    <input id="calc-consumed-unit" type="number" min="0" step="1" readonly />
+                  </label>
+                  <label>
+                    <span>Rate</span>
+                    <input id="calc-rate" type="number" min="0" step="1" required />
+                  </label>
+                </div>
+
+                <div class="field-row">
+                  <label>
+                    <span>Machine</span>
+                    <input id="calc-machine" type="number" min="0" step="1" required />
+                  </label>
+                  <label>
+                    <span>Total</span>
+                    <input id="calc-total" type="number" min="0" step="1" readonly />
+                  </label>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <section id="data-view" class="section-view hidden">
+            <div class="card">
+              <h3>Data</h3>
+              <div class="room-select-wrap">
+                <label>
+                  <span>Select room</span>
+                  <select id="data-room-select"></select>
+                </label>
+              </div>
+              <div id="data-room-content" class="detail-box"></div>
+            </div>
+          </section>
+        </main>
+      </section>
+    </div>
+
+    <script src="/files/js/app.js"></script>
+  </body>
+</html>
